@@ -102,7 +102,9 @@ func (p *Publisher) CheckReservedAndPublish(filepath string) error {
 	}
 
 	content[1] = string(meta)
-	writeFile(filepath, []byte(strings.Join(content, hugoSeparator)), os.ModePerm)
+	if err := writeFile(filepath, []byte(strings.Join(content, hugoSeparator)), os.ModePerm); err != nil {
+		return failure.Wrap(err)
+	}
 
 	return nil
 }
