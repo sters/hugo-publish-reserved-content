@@ -13,7 +13,7 @@ func TestPublisher_CheckReservedAndPublish(t *testing.T) {
 		content  string
 		wantCode failure.StringCode
 	}{
-		{"empty", "", ErrFileContentMismatch},
+		{"empty", "", ErrFileEmpty},
 		{"missing reserved", `
 ---
 date: 2021-01-01T00:00:00Z
@@ -29,7 +29,7 @@ title: Happy New Year!
 reserved: true
 ---
 Happy New Year!
-`, ErrFileContentMismatch},
+`, ErrContentIsReservedButNotDraft},
 		{"not draft", `
 ---
 date: 2021-01-01T00:00:00Z
