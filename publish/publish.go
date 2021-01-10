@@ -13,7 +13,7 @@ import (
 
 const (
 	targetFile    = ".md"
-	hugoSeparator = "---"
+	hugoSeparator = "---\n"
 )
 
 var (
@@ -21,10 +21,14 @@ var (
 	ErrNotTarget = failure.StringCode("not target file")
 	// ErrFileCannotLoad on specified filepath
 	ErrFileCannotLoad = failure.StringCode("file cannot load")
+	// ErrFileEmpty on specified filepath
+	ErrFileEmpty = failure.StringCode("file is empty")
 	// ErrFileContentMismatch on specified filepath
 	ErrFileContentMismatch = failure.StringCode("file content mismatch")
 	// ErrContentIsReservedButNotDraft on specified filepath
 	ErrContentIsReservedButNotDraft = failure.StringCode("content is reserved but not draft")
+	// ErrContentIsNotReserved on specified filepath
+	ErrContentIsNotReserved = failure.StringCode("content is not reserved")
 	// ErrContentIsNotTheTimeYet on specified filepath
 	ErrContentIsNotTheTimeYet = failure.StringCode("content is not the time yet")
 
@@ -57,8 +61,12 @@ func (p *Publisher) CheckReservedAndPublish(filepath string) error {
 		return failure.Wrap(err, failure.WithCode(ErrFileCannotLoad))
 	}
 
+	if len(rawContent) == 0 {
+		return failure.New(ErrFileEmpty)
+	}
+
 	content := strings.Split(string(rawContent), hugoSeparator)
-	if len(content) != 3 {
+	if len(content) < 3 {
 		return failure.New(ErrFileContentMismatch)
 	}
 
@@ -68,7 +76,7 @@ func (p *Publisher) CheckReservedAndPublish(filepath string) error {
 	}
 
 	if _, ok := v[p.reservedKey]; !ok {
-		return failure.New(ErrFileContentMismatch)
+		return failure.New(ErrContentIsNotReserved)
 	}
 	if d, ok := v[p.draftKey]; !ok || d != true {
 		return failure.New(ErrContentIsReservedButNotDraft)

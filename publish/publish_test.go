@@ -16,23 +16,19 @@ func TestPublisher_CheckReservedAndPublish(t *testing.T) {
 		{"empty", "", ErrFileContentMismatch},
 		{"missing reserved", `
 ---
----
 date: 2021-01-01T00:00:00Z
 title: Happy New Year!
 draft: true
 ---
 Happy New Year!
----
-`, ErrFileContentMismatch},
+`, ErrContentIsNotReserved},
 		{"missing draft", `
----
 ---
 date: 2021-01-01T00:00:00Z
 title: Happy New Year!
 reserved: true
 ---
 Happy New Year!
----
 `, ErrFileContentMismatch},
 		{"not draft", `
 ---

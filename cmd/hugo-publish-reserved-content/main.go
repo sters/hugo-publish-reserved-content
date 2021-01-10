@@ -52,18 +52,22 @@ func main() {
 		draftKey    string
 		basePath    string
 	)
-	flag.StringVar(&reservedKey, "reservedKey", "reserved", "hugo content's reservation key (bool), default = reserved")
-	flag.StringVar(&draftKey, "draftKey", "draft", "hugo content's draft key (bool), default = draft")
+	flag.StringVar(&reservedKey, "reservedKey", "reserved", "hugo content's reservation bool key")
+	flag.StringVar(&draftKey, "draftKey", "draft", "hugo content's draft bool key")
 	flag.StringVar(&basePath, "basePath", "", "hugo content's root directory")
+	flag.Parse()
 
 	if reservedKey == "" {
-		fmt.Fprintf(os.Stderr, "reservedKey is required.")
+		fmt.Fprintf(os.Stderr, "reservedKey is required.\n")
+		os.Exit(1)
 	}
 	if draftKey == "" {
-		fmt.Fprintf(os.Stderr, "draftKey is required.")
+		fmt.Fprintf(os.Stderr, "draftKey is required.\n")
+		os.Exit(1)
 	}
 	if basePath == "" {
-		fmt.Fprintf(os.Stderr, "basePath is required.")
+		fmt.Fprintf(os.Stderr, "basePath is required.\n")
+		os.Exit(1)
 	}
 
 	dirs, err := dirwalk(basePath)
@@ -71,22 +75,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p := publish.New("", "")
+	p := publish.New(reservedKey, draftKey)
 	for _, filepath := range dirs {
-		c, ok := failure.CodeOf(p.CheckReservedAndPublish(filepath))
+		err := p.CheckReservedAndPublish(filepath)
+		c, ok := failure.CodeOf(err)
 		if !ok {
 			// = no error
-			fmt.Fprintf(os.Stdout, "%s is published.", filepath)
+			fmt.Fprintf(os.Stdout, "%s is published.\n", filepath)
 			continue
 		}
 
 		switch c {
 		case publish.ErrContentIsReservedButNotDraft:
-			fmt.Fprintf(os.Stderr, "%s is reserved but not draft.", filepath)
+			fmt.Fprintf(os.Stderr, "%s is reserved but not draft.\n", filepath)
 		case publish.ErrFileContentMismatch:
-			fmt.Fprintf(os.Stderr, "%s is maybe breaking content.", filepath)
+			fmt.Fprintf(os.Stderr, "%s is maybe breaking content.\n", filepath)
 		case publish.ErrContentIsNotTheTimeYet:
-			fmt.Fprintf(os.Stderr, "%s is still waiting.", filepath)
+			fmt.Fprintf(os.Stderr, "%s is still waiting.\n", filepath)
 		}
 	}
 }
