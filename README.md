@@ -1,7 +1,5 @@
 # hugo-publish-reserved-content
 
-## Usage
-
 ```
 go get github.com/sters/hugo-publish-reserved-content/cmd/hugo-publish-reserved-content
 ```
@@ -17,16 +15,13 @@ draft: true
 Hi everone! This content is reserved at `2021-01-01T00:00:00Z` !
 ```
 
-v
-
 When use this tools after `2021-01-01T00:00:00Z`, remove `reserved` and `draft` keys.
 
-```
-hugo-publish-reserved-content
-```
+`-basePath XXX` is your hugo content directory.
 
-v
-
+```
+hugo-publish-reserved-content -basePath XXX -reservedKey reserved -draftKey draft
+```
 
 ```
 ---
