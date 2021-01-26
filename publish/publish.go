@@ -1,20 +1,17 @@
 package publish
 
 import (
+	"bytes"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/goccy/go-yaml"
 	"github.com/morikuni/failure"
+	hugocontent "github.com/sters/simple-hugo-content-parse"
 )
 
-const (
-	targetFile    = ".md"
-	hugoSeparator = "---\n"
-)
+const targetFile = ".md"
 
 var (
 	// ErrNotTarget on specified filepath
@@ -65,24 +62,19 @@ func (p *Publisher) CheckReservedAndPublish(filepath string) error {
 		return failure.New(ErrFileEmpty)
 	}
 
-	content := strings.Split(string(rawContent), hugoSeparator)
-	if len(content) < 3 {
+	content, err := hugocontent.ParseMarkdownWithYaml(bytes.NewBuffer(rawContent))
+	if err != nil {
 		return failure.New(ErrFileContentMismatch)
 	}
 
-	var v map[string]interface{}
-	if err := yaml.Unmarshal([]byte(content[1]), &v); err != nil {
-		return failure.Wrap(err, failure.WithCode(ErrFileContentMismatch))
-	}
-
-	if _, ok := v[p.reservedKey]; !ok {
+	if _, ok := content.FrontMatter[p.reservedKey]; !ok {
 		return failure.New(ErrContentIsNotReserved)
 	}
-	if d, ok := v[p.draftKey]; !ok || d != true {
+	if d, ok := content.FrontMatter[p.draftKey]; !ok || d != true {
 		return failure.New(ErrContentIsReservedButNotDraft)
 	}
 
-	t, err := time.Parse(time.RFC3339, v["date"].(string))
+	t, err := time.Parse(time.RFC3339, content.FrontMatter["date"].(string))
 	if err != nil {
 		return failure.Wrap(err, failure.WithCode(ErrFileContentMismatch))
 	}
@@ -92,17 +84,15 @@ func (p *Publisher) CheckReservedAndPublish(filepath string) error {
 		return failure.New(ErrContentIsNotTheTimeYet)
 	}
 
-	delete(v, p.reservedKey)
-	delete(v, p.draftKey)
+	delete(content.FrontMatter, p.reservedKey)
+	delete(content.FrontMatter, p.draftKey)
 
-	meta, err := yaml.Marshal(v)
+	result, err := content.Dump()
 	if err != nil {
-		log.Printf("%s: error: %+v", filepath, err)
 		return failure.Wrap(err, failure.WithCode(ErrFileContentMismatch))
 	}
 
-	content[1] = string(meta)
-	if err := writeFile(filepath, []byte(strings.Join(content, hugoSeparator)), os.ModePerm); err != nil {
+	if err := writeFile(filepath, []byte(result), os.ModePerm); err != nil {
 		return failure.Wrap(err)
 	}
 
