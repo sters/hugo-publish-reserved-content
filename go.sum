@@ -323,6 +323,8 @@ github.com/moricho/tparallel v0.2.1 h1:95FytivzT6rYzdJLdtfn6m1bfFJylOJK41+lgv/EH
 github.com/moricho/tparallel v0.2.1/go.mod h1:fXEIZxG2vdfl0ZF8b42f5a78EhjjD5mX8qUplsoSU4k=
 github.com/morikuni/failure v0.13.0 h1:mjeRIz6kf9NBJ0/UZOWnlA/4cbpy1a4WpxN1xBzByng=
 github.com/morikuni/failure v0.13.0/go.mod h1:+IjvKCz9B/D4BQrTzYLwERdWyMkGJdu+q5gri9dWecg=
+github.com/morikuni/failure v0.14.0 h1:mSWh3CLEdJ37EoyJlVHPHEffylYpavSHfm2jvNBqvIM=
+github.com/morikuni/failure v0.14.0/go.mod h1:+IjvKCz9B/D4BQrTzYLwERdWyMkGJdu+q5gri9dWecg=
 github.com/mozilla/tls-observatory v0.0.0-20200317151703-4fa42e1c2dee/go.mod h1:SrKMQvPiws7F7iqYp8/TX+IhxCYhzr6N/1yb8cwHsGk=
 github.com/mozilla/tls-observatory v0.0.0-20201209171846-0547674fceff/go.mod h1:SrKMQvPiws7F7iqYp8/TX+IhxCYhzr6N/1yb8cwHsGk=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
