@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/cavaliercoder/grab"
 	"github.com/morikuni/failure"
 	hugocontent "github.com/sters/simple-hugo-content-parse"
 )
@@ -34,26 +37,28 @@ var (
 )
 
 // New is constructor of Publisher
-func New(reservedKey string, draftKey string) *Publisher {
+func New(reservedKey string, draftKey string, imageReplaceFormat string) *Publisher {
 	return &Publisher{
-		reservedKey: reservedKey,
-		draftKey:    draftKey,
+		reservedKey:        reservedKey,
+		draftKey:           draftKey,
+		imageReplaceFormat: imageReplaceFormat,
 	}
 }
 
 // Publisher doing publish reserved content
 type Publisher struct {
-	reservedKey string
-	draftKey    string
+	reservedKey        string
+	draftKey           string
+	imageReplaceFormat string
 }
 
 // CheckReservedAndPublish reserved content
-func (p *Publisher) CheckReservedAndPublish(filepath string) error {
-	if !strings.Contains(filepath, targetFile) {
+func (p *Publisher) CheckReservedAndPublish(fpath string) error {
+	if !strings.Contains(fpath, targetFile) {
 		return failure.New(ErrNotTarget)
 	}
 
-	rawContent, err := readFile(filepath)
+	rawContent, err := readFile(fpath)
 	if err != nil {
 		return failure.Wrap(err, failure.WithCode(ErrFileCannotLoad))
 	}
@@ -87,14 +92,52 @@ func (p *Publisher) CheckReservedAndPublish(filepath string) error {
 	delete(content.FrontMatter, p.reservedKey)
 	delete(content.FrontMatter, p.draftKey)
 
+	if images := detectImageURL(content.Body); len(images) > 0 {
+		dir := filepath.Dir(fpath)
+		for _, image := range images {
+			r := regexp.MustCompile(regexp.QuoteMeta(image.raw))
+			resp, err := grab.Get(dir, image.url)
+			if err != nil || resp == nil {
+				content.Body = r.ReplaceAllString(content.Body, "<!-- $1 (failed to get file) -->")
+			} else {
+				content.Body = r.ReplaceAllStringFunc(content.Body, func(s string) string {
+					fp, _ := filepath.Rel(dir, resp.Filename)
+					return regexp.MustCompile("^(.+)$").ReplaceAllString(fp, p.imageReplaceFormat)
+				})
+			}
+		}
+	}
+
 	result, err := content.Dump()
 	if err != nil {
 		return failure.Wrap(err, failure.WithCode(ErrFileContentMismatch))
 	}
 
-	if err := writeFile(filepath, []byte(result), os.ModePerm); err != nil {
+	if err := writeFile(fpath, []byte(result), os.ModePerm); err != nil {
 		return failure.Wrap(err)
 	}
 
 	return nil
+}
+
+const urlRegex = "!\\[.*?\\]\\((https?://[^\\s\\]]+)\\)"
+
+type image struct {
+	url string
+	raw string
+}
+
+func detectImageURL(body string) []image {
+	r := regexp.MustCompile(urlRegex)
+
+	raw := r.FindAllStringSubmatch(body, -1)
+	files := make([]image, len(raw))
+	for i, r := range raw {
+		files[i] = image{
+			url: r[1],
+			raw: r[0],
+		}
+	}
+
+	return files
 }

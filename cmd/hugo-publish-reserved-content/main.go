@@ -48,13 +48,15 @@ func dirwalk(dir string) ([]string, error) {
 
 func main() {
 	var (
-		reservedKey string
-		draftKey    string
-		basePath    string
+		reservedKey        string
+		draftKey           string
+		basePath           string
+		imageReplaceFormat string
 	)
 	flag.StringVar(&reservedKey, "reservedKey", "reserved", "hugo content's reservation bool key")
 	flag.StringVar(&draftKey, "draftKey", "draft", "hugo content's draft bool key")
 	flag.StringVar(&basePath, "basePath", "", "hugo content's root directory")
+	flag.StringVar(&imageReplaceFormat, "imageReplaceFormat", "![]($1)", "how to replace image url")
 	flag.Parse()
 
 	if reservedKey == "" {
@@ -69,13 +71,17 @@ func main() {
 		fmt.Fprintf(os.Stderr, "basePath is required.\n")
 		os.Exit(1)
 	}
+	if imageReplaceFormat == "" {
+		fmt.Fprintf(os.Stderr, "imageReplaceFormat is required.\n")
+		os.Exit(1)
+	}
 
 	dirs, err := dirwalk(basePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	p := publish.New(reservedKey, draftKey)
+	p := publish.New(reservedKey, draftKey, imageReplaceFormat)
 	for _, filepath := range dirs {
 		err := p.CheckReservedAndPublish(filepath)
 		c, ok := failure.CodeOf(err)

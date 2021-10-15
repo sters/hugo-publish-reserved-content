@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/morikuni/failure"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPublisher_CheckReservedAndPublish(t *testing.T) {
@@ -69,7 +70,7 @@ Happy New Year!
 				return nil
 			}
 
-			err := New("reserved", "draft").CheckReservedAndPublish("dummy.md")
+			err := New("reserved", "draft", "%s").CheckReservedAndPublish("dummy.md")
 			if tt.wantCode == "" {
 				if err != nil {
 					t.Errorf("want no error, got=%+v", err)
@@ -79,6 +80,66 @@ Happy New Year!
 			if !failure.Is(err, tt.wantCode) {
 				t.Errorf("want error=%+v, got=%+v", tt.wantCode, err)
 			}
+		})
+	}
+}
+
+func Test_detectImageURL(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+		want []image
+	}{
+		{
+			name: "no url",
+			body: "hello world!",
+			want: []image{},
+		},
+		{
+			name: "1 url but not image",
+			body: "hello world! https://example.com/",
+			want: []image{},
+		},
+		{
+			name: "1 url",
+			body: "hello world! ![](https://example.com/example.png)",
+			want: []image{
+				{
+					url: "https://example.com/example.png",
+					raw: "![](https://example.com/example.png)",
+				},
+			},
+		},
+		{
+			name: "2 url but 1 url not image",
+			body: "https://example.com/ hello world! ![](https://example.com/example.png)",
+			want: []image{
+				{
+					url: "https://example.com/example.png",
+					raw: "![](https://example.com/example.png)",
+				},
+			},
+		},
+		{
+			name: "2 url",
+			body: "![](https://example.com/example.jpeg) hello world! ![](https://example.com/example.png)",
+			want: []image{
+				{
+					url: "https://example.com/example.jpeg",
+					raw: "![](https://example.com/example.jpeg)",
+				},
+				{
+					url: "https://example.com/example.png",
+					raw: "![](https://example.com/example.png)",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got := detectImageURL(tt.body)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
