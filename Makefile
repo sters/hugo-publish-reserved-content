@@ -16,7 +16,6 @@ run:
 .PHONY: lint
 lint:
 	golangci-lint run -v ./...
-	go-consistent -v ./...
 
 .PHONY: test
 test:
