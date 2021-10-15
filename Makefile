@@ -15,7 +15,7 @@ run:
 
 .PHONY: lint
 lint:
-	golangci-lint run -v ./...
+	$(GOBIN)/golangci-lint run -v ./...
 
 .PHONY: test
 test:

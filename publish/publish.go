@@ -17,26 +17,26 @@ import (
 const targetFile = ".md"
 
 var (
-	// ErrNotTarget on specified filepath
+	// ErrNotTarget on specified filepath.
 	ErrNotTarget = failure.StringCode("not target file")
-	// ErrFileCannotLoad on specified filepath
+	// ErrFileCannotLoad on specified filepath.
 	ErrFileCannotLoad = failure.StringCode("file cannot load")
-	// ErrFileEmpty on specified filepath
+	// ErrFileEmpty on specified filepath.
 	ErrFileEmpty = failure.StringCode("file is empty")
-	// ErrFileContentMismatch on specified filepath
+	// ErrFileContentMismatch on specified filepath.
 	ErrFileContentMismatch = failure.StringCode("file content mismatch")
-	// ErrContentIsReservedButNotDraft on specified filepath
+	// ErrContentIsReservedButNotDraft on specified filepath.
 	ErrContentIsReservedButNotDraft = failure.StringCode("content is reserved but not draft")
-	// ErrContentIsNotReserved on specified filepath
+	// ErrContentIsNotReserved on specified filepath.
 	ErrContentIsNotReserved = failure.StringCode("content is not reserved")
-	// ErrContentIsNotTheTimeYet on specified filepath
+	// ErrContentIsNotTheTimeYet on specified filepath.
 	ErrContentIsNotTheTimeYet = failure.StringCode("content is not the time yet")
 
 	readFile  = ioutil.ReadFile
 	writeFile = ioutil.WriteFile
 )
 
-// New is constructor of Publisher
+// New is constructor of Publisher.
 func New(reservedKey string, draftKey string, imageReplaceFormat string) *Publisher {
 	return &Publisher{
 		reservedKey:        reservedKey,
@@ -45,14 +45,14 @@ func New(reservedKey string, draftKey string, imageReplaceFormat string) *Publis
 	}
 }
 
-// Publisher doing publish reserved content
+// Publisher doing publish reserved content.
 type Publisher struct {
 	reservedKey        string
 	draftKey           string
 	imageReplaceFormat string
 }
 
-// CheckReservedAndPublish reserved content
+// CheckReservedAndPublish reserved content.
 func (p *Publisher) CheckReservedAndPublish(fpath string) error {
 	if !strings.Contains(fpath, targetFile) {
 		return failure.New(ErrNotTarget)

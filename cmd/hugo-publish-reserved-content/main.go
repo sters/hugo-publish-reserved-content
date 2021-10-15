@@ -24,7 +24,7 @@ func dirwalk(dir string) ([]string, error) {
 		return nil, failure.Wrap(err)
 	}
 
-	var paths []string
+	paths := make([]string, 0, len(files))
 	for _, file := range files {
 		if file.IsDir() {
 			child, err := dirwalk(filepath.Join(dir, file.Name()))
