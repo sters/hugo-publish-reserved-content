@@ -1,3 +1,7 @@
+Moved to https://github.com/sters/hugo-utilities
+
+---
+
 # hugo-publish-reserved-content
 
 ```
